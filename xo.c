@@ -8,12 +8,55 @@
 #include "loadShader.h"
 #include "tgaLoad.h"
 
-char gameMatrix[] = { 0 };
+#define gamerX 1
+#define gamerO 2
 
-void setXO(double xpos, double ypos) {
+char gameMatrix[3][3] = { { 0 }, { 0 }, { 0 } };
+char gamer = gamerX;
+
+int setXO(GLFWwindow* window, double xpos, double ypos) {
     printf("setXO %f %f\n", xpos, ypos);
-    
 
+    unsigned char gameMatrixXpos = 0;
+    unsigned char gameMatrixYpos = 0;
+
+    int windowWeight, windowHeight;
+
+    glfwGetWindowSize(window, &windowWeight, &windowHeight);
+    
+    if(xpos < windowWeight / 3) {
+        gameMatrixXpos = 0;
+    } else if(xpos > windowWeight * 2 / 3) {
+        gameMatrixXpos = 2;
+    } else { // center
+        gameMatrixXpos = 1;
+    }
+    
+    if(ypos < windowHeight / 3) {
+        gameMatrixYpos = 0;
+    } else if(ypos > windowHeight * 2 / 3) {
+        gameMatrixYpos = 2;
+    } else { // center
+        gameMatrixYpos = 1;
+    }
+    
+    printf("gameMatrixPos: %d %d\n", gameMatrixXpos, gameMatrixYpos);
+    
+    if(gameMatrix[gameMatrixYpos][gameMatrixXpos] != 0) {
+        return 0;
+    }
+    
+    gameMatrix[gameMatrixYpos][gameMatrixXpos] = gamer;
+    
+    printf("gameMatrixPos: %d %d gamer: %d\n", gameMatrixXpos, gameMatrixYpos, gamer);
+    
+    if(gamer == gamerX) {
+        gamer = gamerO;
+    } else {
+        gamer = gamerX;
+    }
+    
+    return 1;
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
@@ -23,10 +66,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         printf("left pressed\n" );
         
         glfwGetCursorPos(window, &xpos, &ypos);
-        
-        printf("%f %f\n", xpos, ypos);
-        
-        setXO(xpos, ypos);
+
+        setXO(window, xpos, ypos);
     }
 }
 
