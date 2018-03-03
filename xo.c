@@ -50,6 +50,13 @@ int setXO(GLFWwindow* window, double xpos, double ypos) {
     
     printf("gameMatrixPos: %d %d gamer: %d\n", gameMatrixXpos, gameMatrixYpos, gamer);
     
+    glBindTexture(GL_TEXTURE_2D, 2);
+
+    glDrawArrays(GL_TRIANGLES
+            , 0 // start from 0
+            , 6 // total points.
+    ); 
+    
     if(gamer == gamerX) {
         gamer = gamerO;
     } else {
@@ -184,13 +191,61 @@ int main(int argv, char *argc[]) {
     
     /* teksturki miltso... end */
     
-    printf("total points: %d\n", (int)((sizeof(gl_vertex_buffer_data) / sizeof(GLfloat)) / 2));
+    //printf("total points: %d\n", (int)((sizeof(gl_vertex_buffer_data) / sizeof(GLfloat)) / 2));
+    
+    GLuint elementTexture = 0;
+    elementTexture = TextureFromTGA("images/textures.tga");
+
+    if(elementTexture == -1) {
+        printf("colorTexture - fail\n");
+        return EXIT_FAILURE;
+    }
+
+//    GLfloat gl_vertex_buffer_data[] = {
+//        -1.0, -1.0,
+//        1.0, -1.0,
+//        1.0, 1.0,
+//        1.0, 1.0,
+//        -1.0, 1.0,
+//        -1.0, -1.0
+//    };
+    GLfloat gl_texcoords_buffer_data_elements[] = {
+        0.0, 0.8,
+        0.2, 0.8,
+        0.2, 1.0,
+        0.2, 1.0,
+        0.0, 1.0,
+        0.2, 0.8
+    };
+    
+    GLuint vbo3;
+    glGenBuffers(1, &vbo3);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo3);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data_elements), gl_texcoords_buffer_data_elements, GL_STATIC_DRAW);
+//    glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
+//    glEnableVertexAttribArray(texcoordLocation);
+
+    // finish init
+    
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind
+    glBindVertexArray(0);
+
+    // start draw field
+    
+    glBindVertexArray(vertexArrayID);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo2);
+    
+    glBindTexture(GL_TEXTURE_2D, colorTexture);
     
     glDrawArrays(GL_TRIANGLES
             , 0 // start from 0
             , (int)((sizeof(gl_vertex_buffer_data) / sizeof(GLfloat)) / 2) // total points.
     ); 
 
+    
+    
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     
     while(glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
