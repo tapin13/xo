@@ -52,11 +52,16 @@ int setXO(GLFWwindow* window, double xpos, double ypos) {
     
     glBindVertexArray(1); // vertexArrayID
     
-    glBindBuffer(GL_ARRAY_BUFFER, 3); // vertexbuffer
+    glBindBuffer(GL_ARRAY_BUFFER, 3); // vertexbufferElements
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0); // 0 - vertexId
-    glBindBuffer(GL_ARRAY_BUFFER, 4); // vbo_texcoords_field
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0); // 0 - texcoordLocation
-    glBindTexture(GL_TEXTURE_2D, 2); // fieldTexture
+    glBindBuffer(GL_ARRAY_BUFFER, 4); // vbo_texcoords_elements
+    
+    unsigned char textureCoordinatesPlace = 0;
+    if(gamer == gamerO) {
+        textureCoordinatesPlace = 2 * sizeof(GL_FLOAT) * 6; // 2 points per dot, total 6 dots
+    }
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (const void *)&textureCoordinatesPlace); // 0 - texcoordLocation
+    glBindTexture(GL_TEXTURE_2D, 2); // elementTexture
     
     glDrawArrays(GL_TRIANGLES
             , 0 // start from 0
@@ -85,7 +90,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 }
 
 int main(int argv, char *argc[]) {
-
+    
     if(!glfwInit()){
         printf("Failed to initialize GLFW\n" );
         return EXIT_FAILURE;
@@ -98,7 +103,7 @@ int main(int argv, char *argc[]) {
     
     
     GLFWwindow* window; // (In the accompanying source code, this variable is global for simplicity)
-    window = glfwCreateWindow( 1024, 768, "XO", NULL, NULL);
+    window = glfwCreateWindow(100, 100, "XO", NULL, NULL);
     if(window == NULL) {
         fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
         glfwTerminate();
@@ -225,20 +230,46 @@ int main(int argv, char *argc[]) {
     }
 
     GLfloat gl_vertex_buffer_data_elements[] = {
+        // demo
         -1.0, -1.0,
         1.0, -1.0,
         1.0, 1.0,
         1.0, 1.0,
         -1.0, 1.0,
-        -1.0, -1.0
+        -1.0, -1.0        
+        
+//        // element position 1
+//        -0.8, 0.7,
+//        -0.6, 0.7,
+//        -0.6, 1.0,
+//        -0.6, 1.0,
+//        -0.8, 1.0,
+//        -0.8, 0.7,
+//                
+//        // element position 2
+//        -0.2, 0.7,
+//        0.2, 0.7,
+//        0.2, 1.0,
+//        0.2, 1.0,
+//        -0.2, 1.0,
+//        -0.2, 0.7
     };
     GLfloat gl_texcoords_buffer_data_elements[] = {
+        // texture 1
         0.0, 0.8,
         0.2, 0.8,
         0.2, 1.0,
         0.2, 1.0,
         0.0, 1.0,
-        0.0, 0.8
+        0.0, 0.8,
+                
+        // texture 2
+        0.2, 0.8,
+        0.4, 0.8,
+        0.4, 1.0,
+        0.4, 1.0,
+        0.2, 1.0,
+        0.2, 0.8,
     };
     
     GLuint vertexbufferElements, vertexIdElements; // vbo
