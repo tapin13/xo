@@ -50,8 +50,14 @@ int setXO(GLFWwindow* window, double xpos, double ypos) {
     
     printf("gameMatrixPos: %d %d gamer: %d\n", gameMatrixXpos, gameMatrixYpos, gamer);
     
-    glBindTexture(GL_TEXTURE_2D, 2);
-
+    glBindVertexArray(1); // vertexArrayID
+    
+    glBindBuffer(GL_ARRAY_BUFFER, 3); // vertexbuffer
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0); // 0 - vertexId
+    glBindBuffer(GL_ARRAY_BUFFER, 4); // vbo_texcoords_field
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0); // 0 - texcoordLocation
+    glBindTexture(GL_TEXTURE_2D, 2); // fieldTexture
+    
     glDrawArrays(GL_TRIANGLES
             , 0 // start from 0
             , 6 // total points.
@@ -120,9 +126,12 @@ int main(int argv, char *argc[]) {
 
     GLuint vertexArrayID; // vao
     glGenVertexArrays(1, &vertexArrayID);
+    
+    printf("vertexArrayID Id (VAO): %d\n", vertexArrayID);
+    
     glBindVertexArray(vertexArrayID);
 
-    GLfloat gl_vertex_buffer_data[] = {
+    GLfloat gl_vertex_buffer_data_field[] = {
         -1.0, -1.0,
         1.0, -1.0,
         1.0, 1.0,
@@ -130,7 +139,7 @@ int main(int argv, char *argc[]) {
         -1.0, 1.0,
         -1.0, -1.0
     };
-    GLfloat gl_texcoords_buffer_data[] = {
+    GLfloat gl_texcoords_buffer_data_field[] = {
         0.0, 0.0,
         1.0, 0.0,
         1.0, 1.0,
@@ -143,10 +152,15 @@ int main(int argv, char *argc[]) {
     
     GLuint vertexbuffer, vertexId; // vbo
     glGenBuffers(1, &vertexbuffer);
+    
+    printf("vertexbuffer Id (field): %d\n", vertexbuffer);
+    
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data), gl_vertex_buffer_data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data_field), gl_vertex_buffer_data_field, GL_STATIC_DRAW);
 
     vertexId = glGetAttribLocation(program, "vertex_position"); // number of array attributes
+    
+    printf("vertexId (shader ID of vertex_position): %d\n", vertexId);
     
     glVertexAttribPointer(
         vertexId,
@@ -160,11 +174,13 @@ int main(int argv, char *argc[]) {
     
     /* teksturki miltso... start */
 
-    GLuint colorTexture = 0;
-    colorTexture = TextureFromTGA("images/field.tga");
+    GLuint fieldTexture = 0;
+    fieldTexture = TextureFromTGA("images/field.tga");
 
-    if(colorTexture == -1) {
-        printf("colorTexture - fail\n");
+    printf("fieldTexture Id %hi\n", fieldTexture);
+    
+    if(fieldTexture == -1) {
+        printf("fieldTexture - fail\n");
         return EXIT_FAILURE;
     }
     
@@ -179,51 +195,81 @@ int main(int argv, char *argc[]) {
     
     GLint texcoordLocation = -1;
     texcoordLocation = glGetAttribLocation(program, "texcoord"); // number of array attributes
-    printf("texcoordLocation %hi\n", texcoordLocation);
+    printf("texcoordLocation (shader ID of texcoord): %hi\n", texcoordLocation);
     
-    GLuint vbo2;
-    glGenBuffers(1, &vbo2);
+    GLuint vbo_texcoords_field;
+    glGenBuffers(1, &vbo_texcoords_field);
     
-    glBindBuffer(GL_ARRAY_BUFFER, vbo2);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data), gl_texcoords_buffer_data, GL_STATIC_DRAW);
+    printf("vbo_texcoords_field Id: %d\n", vbo_texcoords_field);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_field);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data_field), gl_texcoords_buffer_data_field, GL_STATIC_DRAW);
     glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
+    
     glEnableVertexAttribArray(texcoordLocation);
+    
+    //glBindTexture(GL_TEXTURE_2D, 0); // unbind
     
     /* teksturki miltso... end */
     
-    //printf("total points: %d\n", (int)((sizeof(gl_vertex_buffer_data) / sizeof(GLfloat)) / 2));
+    //printf("total points: %d\n", (int)((sizeof(gl_vertex_buffer_data_field) / sizeof(GLfloat)) / 2));
     
     GLuint elementTexture = 0;
     elementTexture = TextureFromTGA("images/textures.tga");
 
+    printf("elementTexture Id %hi\n", elementTexture);
+    
     if(elementTexture == -1) {
-        printf("colorTexture - fail\n");
+        printf("elementTexture - fail\n");
         return EXIT_FAILURE;
     }
 
-//    GLfloat gl_vertex_buffer_data[] = {
-//        -1.0, -1.0,
-//        1.0, -1.0,
-//        1.0, 1.0,
-//        1.0, 1.0,
-//        -1.0, 1.0,
-//        -1.0, -1.0
-//    };
+    GLfloat gl_vertex_buffer_data_elements[] = {
+        -1.0, -1.0,
+        1.0, -1.0,
+        1.0, 1.0,
+        1.0, 1.0,
+        -1.0, 1.0,
+        -1.0, -1.0
+    };
     GLfloat gl_texcoords_buffer_data_elements[] = {
         0.0, 0.8,
         0.2, 0.8,
         0.2, 1.0,
         0.2, 1.0,
         0.0, 1.0,
-        0.2, 0.8
+        0.0, 0.8
     };
     
-    GLuint vbo3;
-    glGenBuffers(1, &vbo3);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo3);
+    GLuint vertexbufferElements, vertexIdElements; // vbo
+    glGenBuffers(1, &vertexbufferElements);
+    
+    printf("vertexbufferElements Id: %d\n", vertexbufferElements);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data_elements), gl_vertex_buffer_data_elements, GL_STATIC_DRAW);
+
+    vertexIdElements = glGetAttribLocation(program, "vertex_position"); // number of array attributes
+    
+    glVertexAttribPointer(
+        vertexIdElements,
+        2, // size
+        GL_FLOAT, // type
+        GL_FALSE, // normalized?
+        2 * sizeof(GL_FLOAT), // stride - sdvig - shag
+        (void*)0 // array buffer offset - sdvig ot nachala massiva, esli est' naprimer v nachale tochki a potom tsveta
+    );
+    glEnableVertexAttribArray(vertexIdElements);
+    
+    GLuint vbo_texcoords_elements;
+    glGenBuffers(1, &vbo_texcoords_elements);
+    
+    printf("vbo_texcoords_elements Id: %d\n", vbo_texcoords_elements);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_elements);
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data_elements), gl_texcoords_buffer_data_elements, GL_STATIC_DRAW);
-//    glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
-//    glEnableVertexAttribArray(texcoordLocation);
+    glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
+    glEnableVertexAttribArray(texcoordLocation);
 
     // finish init
     
@@ -234,17 +280,36 @@ int main(int argv, char *argc[]) {
     
     glBindVertexArray(vertexArrayID);
     
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo2);
     
-    glBindTexture(GL_TEXTURE_2D, colorTexture);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glVertexAttribPointer(
+        vertexId,
+        2, // size
+        GL_FLOAT, // type
+        GL_FALSE, // normalized?
+        2 * sizeof(GL_FLOAT), // stride - sdvig - shag
+        (void*)0 // array buffer offset - sdvig ot nachala massiva, esli est' naprimer v nachale tochki a potom tsveta
+    );
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_field);
+    glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
+    
+    glBindTexture(GL_TEXTURE_2D, fieldTexture);
+    
+    
+    /*
+    glActiveTexture(GL_TEXTURE0);
+    glBindBuffer(GL_ARRAY_BUFFER, 1); // vertexbufferElements
+    glBindTexture(GL_TEXTURE_2D, 1);
+    */
     
     glDrawArrays(GL_TRIANGLES
             , 0 // start from 0
-            , (int)((sizeof(gl_vertex_buffer_data) / sizeof(GLfloat)) / 2) // total points.
-    ); 
-
+            , (int)((sizeof(gl_vertex_buffer_data_field) / sizeof(GLfloat)) / 2) // total points.
+    );
     
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind
+    glBindVertexArray(0);
     
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     
