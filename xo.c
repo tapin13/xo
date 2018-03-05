@@ -11,18 +11,16 @@
 #define gamerX 1
 #define gamerO 2
 
+int windowWeight, windowHeight;
+
 char gameMatrix[3][3] = { { 0 }, { 0 }, { 0 } };
 char gamer = gamerX;
 
-int setXO(GLFWwindow* window, double xpos, double ypos) {
+int setXO(double xpos, double ypos) {
     printf("setXO %f %f\n", xpos, ypos);
 
     unsigned char gameMatrixXpos = 0;
     unsigned char gameMatrixYpos = 0;
-
-    int windowWeight, windowHeight;
-
-    glfwGetWindowSize(window, &windowWeight, &windowHeight);
     
     if(xpos < windowWeight / 3) {
         gameMatrixXpos = 0;
@@ -40,23 +38,17 @@ int setXO(GLFWwindow* window, double xpos, double ypos) {
         gameMatrixYpos = 1;
     }
     
-    printf("gameMatrixPos: %d %d\n", gameMatrixXpos, gameMatrixYpos);
-    
     if(gameMatrix[gameMatrixYpos][gameMatrixXpos] != 0) {
         return 0;
     }
     
     gameMatrix[gameMatrixYpos][gameMatrixXpos] = gamer;
     
-    printf("gameMatrixPos: %d %d gamer: %d\n", gameMatrixXpos, gameMatrixYpos, gamer);
-    
     glBindVertexArray(1); // vertexArrayID
     
     glBindBuffer(GL_ARRAY_BUFFER, 3); // vertexbufferElements
     
     unsigned char gameMatrixPos = gameMatrixYpos * 3 + gameMatrixXpos;
-    
-    printf("gameMatrixPos matrix!!!: %d\n", gameMatrixPos);
     
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * gameMatrixPos)); // 0 - vertexId
     glBindBuffer(GL_ARRAY_BUFFER, 4); // vbo_texcoords_elements
@@ -69,13 +61,52 @@ int setXO(GLFWwindow* window, double xpos, double ypos) {
             , 6 // total points.
     ); 
 
-//    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (const void *)&textureCoordinatesPlace); // 0 - texcoordLocation
-//    glBindTexture(GL_TEXTURE_2D, 2); // elementTexture
+    return 1;
+}
+
+char checkWin() {
+    int i = 0;
     
-    if(gamer == gamerX) {
-        gamer = gamerO;
-    } else {
-        gamer = gamerX;
+    for(i = 0; i < 3; i++) {
+        if(
+                (gameMatrix[i][0] == gamerX && gameMatrix[i][1] == gamerX && gameMatrix[i][2] == gamerX)
+                || (gameMatrix[i][0] == gamerO && gameMatrix[i][1] == gamerO && gameMatrix[i][2] == gamerO)) {
+            return 1;
+        }
+    }
+    
+    for(i = 0; i < 3; i++) {
+        if(
+                (gameMatrix[0][i] == gamerX && gameMatrix[1][i] == gamerX && gameMatrix[2][i] == gamerX)
+                || (gameMatrix[0][i] == gamerO && gameMatrix[1][i] == gamerO && gameMatrix[2][i] == gamerO)) {
+            return 1;
+        }
+    }
+    
+    if(
+            (gameMatrix[0][0] == gamerX && gameMatrix[1][1] == gamerX && gameMatrix[2][2] == gamerX)
+            || (gameMatrix[0][0] == gamerO && gameMatrix[1][1] == gamerO && gameMatrix[2][2] == gamerO)) {
+        return 1;
+    }
+    
+    if(
+            (gameMatrix[0][2] == gamerX && gameMatrix[1][1] == gamerX && gameMatrix[2][0] == gamerX)
+            || (gameMatrix[0][2] == gamerO && gameMatrix[1][1] == gamerO && gameMatrix[2][0] == gamerO)) {
+        return 1;
+    }
+    
+    return 0;
+}
+
+char checkDraw() {
+    unsigned char i = 0, j = 0;
+    
+    for(i = 0; i < 3; i++) {
+        for(j = 0; j < 3; j++) {
+            if(gameMatrix[i][j] == 0) {
+                return 0;
+            }
+        }
     }
     
     return 1;
@@ -85,11 +116,28 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     double xpos, ypos;
     
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-        printf("left pressed\n" );
+        //printf("left pressed\n" );
         
         glfwGetCursorPos(window, &xpos, &ypos);
 
-        setXO(window, xpos, ypos);
+        if(setXO(xpos, ypos) != 1) {
+            return;
+        }
+        
+        if(checkWin() == 1) {
+            printf("Win: %d\n", gamer);
+            
+        }
+
+        if(checkDraw() == 1) {
+            printf("Draw\n" );
+        }
+        
+        if(gamer == gamerX) {
+            gamer = gamerO;
+        } else {
+            gamer = gamerX;
+        }        
     }
 }
 
@@ -115,7 +163,7 @@ int main(int argv, char *argc[]) {
     }
     
     glfwMakeContextCurrent(window); // Initialize GLEW
-    
+
     glewExperimental = 1;
     if (glewInit() != GLEW_OK) {
         fprintf(stderr, "Failed to initialize GLEW\n");
@@ -126,6 +174,8 @@ int main(int argv, char *argc[]) {
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     glfwSetInputMode(window, GLFW_CURSOR, GL_TRUE);
     glfwSwapInterval(1);
+
+    glfwGetWindowSize(window, &windowWeight, &windowHeight);
     
     GLuint program;
     program = loadShader();
