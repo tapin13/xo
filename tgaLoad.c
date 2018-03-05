@@ -51,7 +51,7 @@ GLuint TextureFromTGA(const char *filename) {
     internalFormat = format == GL_RGB ? GL_RGB8 : GL_RGBA8;
     
     glGenTextures(1, &texture);
-    //glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
     
     //Допустим, для некого пикселя на экране были определены соответствующие UV-координаты на текстуре. 
