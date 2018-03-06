@@ -12,6 +12,7 @@
 #define gamerX 1
 #define gamerO 2
 
+GLFWwindow* window; // (In the accompanying source code, this variable is global for simplicity)
 int windowWeight, windowHeight;
 
 char gameLoop = 0;
@@ -265,6 +266,7 @@ void menuSelect(double xpos, double ypos) {
     
     if(xFloats < 0.9 && xFloats > 0.1 && yFloats < -0.5 && yFloats > -0.9) {
         printf("exit\n");
+        glfwSetWindowShouldClose(window, 1);
     }
 }
 
@@ -421,7 +423,7 @@ int main(int argv, char *argc[]) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
     
     
-    GLFWwindow* window; // (In the accompanying source code, this variable is global for simplicity)
+    
     window = glfwCreateWindow(100, 100, "XO", NULL, NULL);
     if(window == NULL) {
         fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
