@@ -1,6 +1,6 @@
-*Compile*
+# Compile
 
-_Prepair:_
+## Prepair:
 
 LinuxMint 18.3
 
