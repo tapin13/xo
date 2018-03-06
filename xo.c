@@ -23,6 +23,8 @@ GLuint program; // shaderProgram
 
 // field
 GLuint vertexbufferField;
+GLuint vbo_texcoords_field;
+GLuint fieldTexture = 0;
 
 // menu
 GLuint menuTexture = 0;
@@ -75,8 +77,8 @@ void initMenu() {
 
 void drawMenu() {
     GLuint vertexId, texcoordLocation; // vbo
-    vertexId = glGetAttribLocation(program, "vertex_position"); // number of array attributes
-    texcoordLocation = glGetAttribLocation(program, "texcoord"); // number of array attributes
+    vertexId = glGetAttribLocation(program, "vertex_position");
+    texcoordLocation = glGetAttribLocation(program, "texcoord");
     
     glBindVertexArray(vertexArrayID);
     
@@ -104,10 +106,10 @@ void drawMenu() {
     glBindVertexArray(0);    
 }
 
-void drawField(
-                 const GLuint vertexId, const GLuint vbo_texcoords_field
-                , const GLuint texcoordLocation, const GLuint fieldTexture
-                , const int totalPoints) {
+void drawField() {
+    GLuint vertexId, texcoordLocation;
+    vertexId = glGetAttribLocation(program, "vertex_position");
+    texcoordLocation = glGetAttribLocation(program, "texcoord");
     
     glBindVertexArray(vertexArrayID);
     
@@ -128,7 +130,7 @@ void drawField(
     
     glDrawArrays(GL_TRIANGLES
             , 0 // start from 0
-            , totalPoints
+            , 6
     );
     
     glBindTexture(GL_TEXTURE_2D, 0); // unbind
@@ -141,7 +143,9 @@ void initGame() {
     
     memcpy(gameMatrix, tmp, 3 * 3 * sizeof(char));
     
-    gamer = gamerX;    
+    gamer = gamerX;
+    
+    drawField();
 }
 
 int setXO(double xpos, double ypos) {
@@ -451,12 +455,12 @@ int main(int argv, char *argc[]) {
 
     
     GLuint vertexId; // vbo
-    vertexId = glGetAttribLocation(program, "vertex_position"); // number of array attributes
+    vertexId = glGetAttribLocation(program, "vertex_position");
     glEnableVertexAttribArray(vertexId);
     printf("vertexId (shader ID of vertex_position): %d\n", vertexId);
     
     GLint texcoordLocation = -1;
-    texcoordLocation = glGetAttribLocation(program, "texcoord"); // number of array attributes
+    texcoordLocation = glGetAttribLocation(program, "texcoord");
     glEnableVertexAttribArray(texcoordLocation);
     printf("texcoordLocation (shader ID of texcoord): %hi\n", texcoordLocation);
 
@@ -475,7 +479,7 @@ int main(int argv, char *argc[]) {
     
     /* teksturki miltso... start */
 
-    GLuint fieldTexture = 0;
+    
     fieldTexture = TextureFromTGA("images/field.tga");
 
     printf("fieldTexture Id %hi\n", fieldTexture);
@@ -485,7 +489,7 @@ int main(int argv, char *argc[]) {
         return EXIT_FAILURE;
     }
     
-    GLuint vbo_texcoords_field;
+    
     glGenBuffers(1, &vbo_texcoords_field);
     
     printf("vbo_texcoords_field Id: %d\n", vbo_texcoords_field);
@@ -539,9 +543,9 @@ int main(int argv, char *argc[]) {
     glBindTexture(GL_TEXTURE_2D, 0); // unbind
     glBindVertexArray(0);
 
-    drawField(vertexId, vbo_texcoords_field
-                , texcoordLocation, fieldTexture
-                , (int)((sizeof(gl_vertex_buffer_data_field) / sizeof(GLfloat)) / 2));
+    drawField(
+                 
+                );
     
     gameLoop = 1;
     
