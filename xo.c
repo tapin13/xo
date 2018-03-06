@@ -21,6 +21,8 @@ char gamer = gamerX;
 GLuint vertexArrayID; // vao
 GLuint program; // shaderProgram
 
+// field
+GLuint vertexbufferField;
 
 // menu
 GLuint menuTexture = 0;
@@ -102,13 +104,14 @@ void drawMenu() {
     glBindVertexArray(0);    
 }
 
-void drawField(const GLuint vertexArrayID, const GLuint vertexbuffer
-                , const GLuint vertexId, const GLuint vbo_texcoords_field
+void drawField(
+                 const GLuint vertexId, const GLuint vbo_texcoords_field
                 , const GLuint texcoordLocation, const GLuint fieldTexture
                 , const int totalPoints) {
+    
     glBindVertexArray(vertexArrayID);
     
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferField);
     glVertexAttribPointer(
         vertexId,
         2, // size
@@ -441,6 +444,11 @@ int main(int argv, char *argc[]) {
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(program);
+
+    glGenVertexArrays(1, &vertexArrayID);
+    printf("vertexArrayID Id (VAO): %d\n", vertexArrayID);
+    glBindVertexArray(vertexArrayID);
+
     
     GLuint vertexId; // vbo
     vertexId = glGetAttribLocation(program, "vertex_position"); // number of array attributes
@@ -454,23 +462,15 @@ int main(int argv, char *argc[]) {
 
     //
     
-    glGenVertexArrays(1, &vertexArrayID);
-    
-    printf("vertexArrayID Id (VAO): %d\n", vertexArrayID);
-    
-    glBindVertexArray(vertexArrayID);
-    
     GLfloat gl_vertex_buffer_data_field[2 * 6];
     GLfloat gl_texcoords_buffer_data_field[2 * 6];
     fillFieldVertex(gl_vertex_buffer_data_field, gl_texcoords_buffer_data_field);
     
-    GLuint vertexbuffer;
-
-    glGenBuffers(1, &vertexbuffer);
+    glGenBuffers(1, &vertexbufferField);
     
-    printf("vertexbuffer Id (field): %d\n", vertexbuffer);
+    printf("vertexbufferField Id (field): %d\n", vertexbufferField);
     
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferField);
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data_field), gl_vertex_buffer_data_field, GL_STATIC_DRAW);
     
     /* teksturki miltso... start */
@@ -539,8 +539,7 @@ int main(int argv, char *argc[]) {
     glBindTexture(GL_TEXTURE_2D, 0); // unbind
     glBindVertexArray(0);
 
-    drawField(vertexArrayID, vertexbuffer
-                , vertexId, vbo_texcoords_field
+    drawField(vertexId, vbo_texcoords_field
                 , texcoordLocation, fieldTexture
                 , (int)((sizeof(gl_vertex_buffer_data_field) / sizeof(GLfloat)) / 2));
     
