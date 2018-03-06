@@ -4,6 +4,7 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <string.h>
 
 #include "loadShader.h"
 #include "tgaLoad.h"
@@ -13,8 +14,132 @@
 
 int windowWeight, windowHeight;
 
+char gameLoop = 0;
 char gameMatrix[3][3] = { { 0 }, { 0 }, { 0 } };
 char gamer = gamerX;
+
+GLuint vertexArrayID; // vao
+GLuint program; // shaderProgram
+
+
+// menu
+GLuint menuTexture = 0;
+GLuint vertexbufferMenu; // vbo
+GLuint vbo_texcoords_menu;
+
+void initMenu() {
+    menuTexture = TextureFromTGA("images/menu.tga");
+
+    printf("menuTexture Id %hi\n", menuTexture);
+    
+    if(menuTexture == -1) {
+        printf("menuTexture - fail\n");
+        return;
+    }
+
+    GLfloat gl_vertex_buffer_data[] = {
+        -1.0, -1.0,
+        1.0, -1.0,
+        1.0, 1.0,
+        1.0, 1.0,
+        -1.0, 1.0,
+        -1.0, -1.0
+    };
+    GLfloat gl_texcoords_buffer_data[] = {
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
+        1.0, 1.0,
+        0.0, 1.0,
+        0.0, 0.0
+    };    
+    
+    glGenBuffers(1, &vertexbufferMenu);
+    
+    printf("vertexbufferMenu Id: %d\n", vertexbufferMenu);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferMenu);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data), gl_vertex_buffer_data, GL_STATIC_DRAW);
+
+    glGenBuffers(1, &vbo_texcoords_menu);
+    
+    printf("vbo_texcoords_menu Id: %d\n", vbo_texcoords_menu);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_menu);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data), gl_texcoords_buffer_data, GL_STATIC_DRAW);
+    
+    return;
+}
+
+void drawMenu() {
+    GLuint vertexId, texcoordLocation; // vbo
+    vertexId = glGetAttribLocation(program, "vertex_position"); // number of array attributes
+    texcoordLocation = glGetAttribLocation(program, "texcoord"); // number of array attributes
+    
+    glBindVertexArray(vertexArrayID);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferMenu);
+    glVertexAttribPointer(
+        vertexId,
+        2, // size
+        GL_FLOAT, // type
+        GL_FALSE, // normalized?
+        2 * sizeof(GL_FLOAT), // stride - sdvig - shag
+        (void*)0 // array buffer offset - sdvig ot nachala massiva, esli est' naprimer v nachale tochki a potom tsveta
+    );
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_menu);
+    glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
+    
+    glBindTexture(GL_TEXTURE_2D, menuTexture);
+    
+    glDrawArrays(GL_TRIANGLES
+            , 0 // start from 0
+            , 6
+    );
+    
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind
+    glBindVertexArray(0);    
+}
+
+void drawField(const GLuint vertexArrayID, const GLuint vertexbuffer
+                , const GLuint vertexId, const GLuint vbo_texcoords_field
+                , const GLuint texcoordLocation, const GLuint fieldTexture
+                , const int totalPoints) {
+    glBindVertexArray(vertexArrayID);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glVertexAttribPointer(
+        vertexId,
+        2, // size
+        GL_FLOAT, // type
+        GL_FALSE, // normalized?
+        2 * sizeof(GL_FLOAT), // stride - sdvig - shag
+        (void*)0 // array buffer offset - sdvig ot nachala massiva, esli est' naprimer v nachale tochki a potom tsveta
+    );
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_field);
+    glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
+    
+    glBindTexture(GL_TEXTURE_2D, fieldTexture);
+    
+    glDrawArrays(GL_TRIANGLES
+            , 0 // start from 0
+            , totalPoints
+    );
+    
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind
+    glBindVertexArray(0);
+}
+
+void initGame() {
+    gameLoop = 1;
+    char tmp[3][3] = { { 0 }, { 0 }, { 0 } };
+    
+    memcpy(gameMatrix, tmp, 3 * 3 * sizeof(char));
+    
+    gamer = gamerX;    
+}
 
 int setXO(double xpos, double ypos) {
     printf("setXO %f %f\n", xpos, ypos);
@@ -112,157 +237,71 @@ char checkDraw() {
     return 1;
 }
 
+void menuSelect(double xpos, double ypos) {
+
+    float xFloats = (xpos / windowWeight);
+
+    xFloats *= 2;
+    xFloats -= 1;
+
+    float yFloats = (ypos / windowHeight);
+
+    yFloats *= 2;
+    yFloats = 1 - yFloats;
+
+    //printf("Floats: %f, %f\n", xFloats, yFloats);
+
+    if(xFloats > -0.9 && xFloats < -0.1 && yFloats < -0.5 && yFloats > -0.9) {
+        printf("go next\n");
+        initGame();
+    }
+    
+    if(xFloats < 0.9 && xFloats > 0.1 && yFloats < -0.5 && yFloats > -0.9) {
+        printf("exit\n");
+    }
+}
+
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     double xpos, ypos;
     
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-        //printf("left pressed\n" );
-        
         glfwGetCursorPos(window, &xpos, &ypos);
-
-        if(setXO(xpos, ypos) != 1) {
-            return;
-        }
         
-        if(checkWin() == 1) {
-            printf("Win: %d\n", gamer);
-            
-        }
+        if(gameLoop == 1) {
+            printf("gameLoop left pressed\n" );
 
-        if(checkDraw() == 1) {
-            printf("Draw\n" );
-        }
-        
-        if(gamer == gamerX) {
-            gamer = gamerO;
+            if(setXO(xpos, ypos) != 1) {
+                return;
+            }
+
+            if(checkWin() == 1) {
+                printf("Win: %d\n", gamer);
+                gameLoop = 0;
+                drawMenu();
+                return;
+            }
+
+            if(checkDraw() == 1) {
+                printf("Draw\n" );
+                gameLoop = 0;
+                drawMenu();
+                return;
+            }
+
+            if(gamer == gamerX) {
+                gamer = gamerO;
+            } else {
+                gamer = gamerX;
+            }        
         } else {
-            gamer = gamerX;
-        }        
+            printf("menu left pressed\n" );
+            
+            menuSelect(xpos, ypos);
+        }
     }
 }
 
-int main(int argv, char *argc[]) {
-    
-    if(!glfwInit()){
-        printf("Failed to initialize GLFW\n" );
-        return EXIT_FAILURE;
-    }
-
-    glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
-    
-    
-    GLFWwindow* window; // (In the accompanying source code, this variable is global for simplicity)
-    window = glfwCreateWindow(100, 100, "XO", NULL, NULL);
-    if(window == NULL) {
-        fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
-        glfwTerminate();
-        return EXIT_FAILURE;
-    }
-    
-    glfwMakeContextCurrent(window); // Initialize GLEW
-
-    glewExperimental = 1;
-    if (glewInit() != GLEW_OK) {
-        fprintf(stderr, "Failed to initialize GLEW\n");
-        return EXIT_FAILURE;
-    }    
-    
-    // Ensure we can capture the escape key being pressed below
-    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-    glfwSetInputMode(window, GLFW_CURSOR, GL_TRUE);
-    glfwSwapInterval(1);
-
-    glfwGetWindowSize(window, &windowWeight, &windowHeight);
-    
-    GLuint program;
-    program = loadShader();
-    
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(program);
-
-    GLuint vertexArrayID; // vao
-    glGenVertexArrays(1, &vertexArrayID);
-    
-    printf("vertexArrayID Id (VAO): %d\n", vertexArrayID);
-    
-    glBindVertexArray(vertexArrayID);
-
-    GLfloat gl_vertex_buffer_data_field[] = {
-        -1.0, -1.0,
-        1.0, -1.0,
-        1.0, 1.0,
-        1.0, 1.0,
-        -1.0, 1.0,
-        -1.0, -1.0
-    };
-    GLfloat gl_texcoords_buffer_data_field[] = {
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        0.0, 0.0
-    };
-    
-    //fillMap(squares, gl_vertex_buffer_data, gl_texcoords_buffer_data);
-    
-    GLuint vertexbuffer, vertexId; // vbo
-    glGenBuffers(1, &vertexbuffer);
-    
-    printf("vertexbuffer Id (field): %d\n", vertexbuffer);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data_field), gl_vertex_buffer_data_field, GL_STATIC_DRAW);
-
-    vertexId = glGetAttribLocation(program, "vertex_position"); // number of array attributes
-    glEnableVertexAttribArray(vertexId);
-    
-    printf("vertexId (shader ID of vertex_position): %d\n", vertexId);
-    
-    /* teksturki miltso... start */
-
-    GLuint fieldTexture = 0;
-    fieldTexture = TextureFromTGA("images/field.tga");
-
-    printf("fieldTexture Id %hi\n", fieldTexture);
-    
-    if(fieldTexture == -1) {
-        printf("fieldTexture - fail\n");
-        return EXIT_FAILURE;
-    }
-    
-    GLint texcoordLocation = -1;
-    texcoordLocation = glGetAttribLocation(program, "texcoord"); // number of array attributes
-    glEnableVertexAttribArray(texcoordLocation);
-    printf("texcoordLocation (shader ID of texcoord): %hi\n", texcoordLocation);
-    
-    GLuint vbo_texcoords_field;
-    glGenBuffers(1, &vbo_texcoords_field);
-    
-    printf("vbo_texcoords_field Id: %d\n", vbo_texcoords_field);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_field);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data_field), gl_texcoords_buffer_data_field, GL_STATIC_DRAW);
-    
-    //glBindTexture(GL_TEXTURE_2D, 0); // unbind
-    
-    /* teksturki miltso... end */
-    
-    //printf("total points: %d\n", (int)((sizeof(gl_vertex_buffer_data_field) / sizeof(GLfloat)) / 2));
-    
-    GLuint elementTexture = 0;
-    elementTexture = TextureFromTGA("images/elements.tga");
-
-    printf("elementTexture Id %hi\n", elementTexture);
-    
-    if(elementTexture == -1) {
-        printf("elementTexture - fail\n");
-        return EXIT_FAILURE;
-    }
-
+void fillElementsVertex(GLfloat vertex_elements[]) {
     GLfloat gl_vertex_buffer_data_elements[9 * 2 * 6] = {
         // element position 1
         -0.9, 0.5,
@@ -307,7 +346,13 @@ int main(int argv, char *argc[]) {
         }
     }
     
-    GLfloat gl_texcoords_buffer_data_elements[] = {
+    memcpy(vertex_elements, gl_vertex_buffer_data_elements, 9 * 2 * 6 * sizeof(GLfloat));
+    
+    return;
+}
+
+void fillElementsTexCoords(GLfloat texcoords_elements[]) {
+    GLfloat gl_texcoords_buffer_data_elements[2 * 2 * 6] = {
         // texture 1
         0.0, 0.8,
         0.2, 0.8,
@@ -325,6 +370,151 @@ int main(int argv, char *argc[]) {
         0.2, 0.8,
     };
     
+    memcpy(texcoords_elements, gl_texcoords_buffer_data_elements, 2 * 2 * 6 * sizeof(GLfloat));
+    
+    return;
+}
+
+void fillFieldVertex(GLfloat vertex_buffer_data[], GLfloat texcoords_buffer_data[]) {
+    GLfloat gl_vertex_buffer_data_field[2 * 6] = {
+        -1.0, -1.0,
+        1.0, -1.0,
+        1.0, 1.0,
+        1.0, 1.0,
+        -1.0, 1.0,
+        -1.0, -1.0
+    };
+    
+    memcpy(vertex_buffer_data, gl_vertex_buffer_data_field, 2 * 6 * sizeof(GLfloat));
+    
+    GLfloat gl_texcoords_buffer_data_field[2 * 6] = {
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
+        1.0, 1.0,
+        0.0, 1.0,
+        0.0, 0.0
+    };
+    
+    memcpy(texcoords_buffer_data, gl_texcoords_buffer_data_field, 2 * 6 * sizeof(GLfloat));
+    
+    return;
+}
+
+int main(int argv, char *argc[]) {
+    
+    if(!glfwInit()){
+        printf("Failed to initialize GLFW\n" );
+        return EXIT_FAILURE;
+    }
+
+    glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
+    
+    
+    GLFWwindow* window; // (In the accompanying source code, this variable is global for simplicity)
+    window = glfwCreateWindow(100, 100, "XO", NULL, NULL);
+    if(window == NULL) {
+        fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
+        glfwTerminate();
+        return EXIT_FAILURE;
+    }
+    
+    glfwMakeContextCurrent(window); // Initialize GLEW
+
+    glewExperimental = 1;
+    if (glewInit() != GLEW_OK) {
+        fprintf(stderr, "Failed to initialize GLEW\n");
+        return EXIT_FAILURE;
+    }    
+    
+    // Ensure we can capture the escape key being pressed below
+    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetInputMode(window, GLFW_CURSOR, GL_TRUE);
+    glfwSwapInterval(1);
+
+    glfwGetWindowSize(window, &windowWeight, &windowHeight);
+    
+    program = loadShader();
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(program);
+    
+    GLuint vertexId; // vbo
+    vertexId = glGetAttribLocation(program, "vertex_position"); // number of array attributes
+    glEnableVertexAttribArray(vertexId);
+    printf("vertexId (shader ID of vertex_position): %d\n", vertexId);
+    
+    GLint texcoordLocation = -1;
+    texcoordLocation = glGetAttribLocation(program, "texcoord"); // number of array attributes
+    glEnableVertexAttribArray(texcoordLocation);
+    printf("texcoordLocation (shader ID of texcoord): %hi\n", texcoordLocation);
+
+    //
+    
+    glGenVertexArrays(1, &vertexArrayID);
+    
+    printf("vertexArrayID Id (VAO): %d\n", vertexArrayID);
+    
+    glBindVertexArray(vertexArrayID);
+    
+    GLfloat gl_vertex_buffer_data_field[2 * 6];
+    GLfloat gl_texcoords_buffer_data_field[2 * 6];
+    fillFieldVertex(gl_vertex_buffer_data_field, gl_texcoords_buffer_data_field);
+    
+    GLuint vertexbuffer;
+
+    glGenBuffers(1, &vertexbuffer);
+    
+    printf("vertexbuffer Id (field): %d\n", vertexbuffer);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data_field), gl_vertex_buffer_data_field, GL_STATIC_DRAW);
+    
+    /* teksturki miltso... start */
+
+    GLuint fieldTexture = 0;
+    fieldTexture = TextureFromTGA("images/field.tga");
+
+    printf("fieldTexture Id %hi\n", fieldTexture);
+    
+    if(fieldTexture == -1) {
+        printf("fieldTexture - fail\n");
+        return EXIT_FAILURE;
+    }
+    
+    GLuint vbo_texcoords_field;
+    glGenBuffers(1, &vbo_texcoords_field);
+    
+    printf("vbo_texcoords_field Id: %d\n", vbo_texcoords_field);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_field);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data_field), gl_texcoords_buffer_data_field, GL_STATIC_DRAW);
+    
+    //glBindTexture(GL_TEXTURE_2D, 0); // unbind
+    
+    /* teksturki miltso... end */
+    
+    //printf("total points: %d\n", (int)((sizeof(gl_vertex_buffer_data_field) / sizeof(GLfloat)) / 2));
+    
+    GLuint elementTexture = 0;
+    elementTexture = TextureFromTGA("images/elements.tga");
+
+    printf("elementTexture Id %hi\n", elementTexture);
+    
+    if(elementTexture == -1) {
+        printf("elementTexture - fail\n");
+        return EXIT_FAILURE;
+    }
+
+    GLfloat gl_vertex_buffer_data_elements[9 * 2 * 6] = { 0 };
+    fillElementsVertex(gl_vertex_buffer_data_elements);
+    
+    GLfloat gl_texcoords_buffer_data_elements[2 * 2 * 6] = { 0 };
+    fillElementsTexCoords(gl_texcoords_buffer_data_elements);
+    
     GLuint vertexbufferElements; // vbo
     glGenBuffers(1, &vertexbufferElements);
     
@@ -341,52 +531,28 @@ int main(int argv, char *argc[]) {
     
     glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_elements);
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data_elements), gl_texcoords_buffer_data_elements, GL_STATIC_DRAW);
-
+    
+    initMenu();
+    
     // finish init
     
     glBindTexture(GL_TEXTURE_2D, 0); // unbind
     glBindVertexArray(0);
 
-    // start draw field
+    drawField(vertexArrayID, vertexbuffer
+                , vertexId, vbo_texcoords_field
+                , texcoordLocation, fieldTexture
+                , (int)((sizeof(gl_vertex_buffer_data_field) / sizeof(GLfloat)) / 2));
     
-    glBindVertexArray(vertexArrayID);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glVertexAttribPointer(
-        vertexId,
-        2, // size
-        GL_FLOAT, // type
-        GL_FALSE, // normalized?
-        2 * sizeof(GL_FLOAT), // stride - sdvig - shag
-        (void*)0 // array buffer offset - sdvig ot nachala massiva, esli est' naprimer v nachale tochki a potom tsveta
-    );
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_field);
-    glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
-    
-    glBindTexture(GL_TEXTURE_2D, fieldTexture);
-    
-    glDrawArrays(GL_TRIANGLES
-            , 0 // start from 0
-            , (int)((sizeof(gl_vertex_buffer_data_field) / sizeof(GLfloat)) / 2) // total points.
-    );
-    
-    glBindTexture(GL_TEXTURE_2D, 0); // unbind
-    glBindVertexArray(0);
+    gameLoop = 1;
     
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     
     while(glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // start from 0. total 3 points.
-        
-        //printf("mousePositionX: %f\n", mousePositionX[0]);
-        //printf("mousePositionY: %f\n", mousePositionY[0]);
-        
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    
     //glDisableVertexAttribArray(vertexId);
     //glDisableVertexAttribArray(texcoordLocation);
     
