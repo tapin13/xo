@@ -32,6 +32,11 @@ GLuint menuTexture = 0;
 GLuint vertexbufferMenu; // vbo
 GLuint vbo_texcoords_menu;
 
+// elements
+GLuint elementTexture = 0;
+GLuint vertexbufferElements; // vbo
+GLuint vbo_texcoords_elements;
+
 void initMenu() {
     menuTexture = TextureFromTGA("images/menu.tga");
 
@@ -77,9 +82,9 @@ void initMenu() {
 }
 
 void drawMenu() {
-    GLuint vertexId, texcoordLocation; // vbo
+    GLuint vertexId, texcoordId; // vbo
     vertexId = glGetAttribLocation(program, "vertex_position");
-    texcoordLocation = glGetAttribLocation(program, "texcoord");
+    texcoordId = glGetAttribLocation(program, "texcoord");
     
     glBindVertexArray(vertexArrayID);
     
@@ -94,7 +99,7 @@ void drawMenu() {
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_menu);
-    glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
+    glVertexAttribPointer(texcoordId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
     
     glBindTexture(GL_TEXTURE_2D, menuTexture);
     
@@ -108,9 +113,9 @@ void drawMenu() {
 }
 
 void drawField() {
-    GLuint vertexId, texcoordLocation;
+    GLuint vertexId, texcoordId;
     vertexId = glGetAttribLocation(program, "vertex_position");
-    texcoordLocation = glGetAttribLocation(program, "texcoord");
+    texcoordId = glGetAttribLocation(program, "texcoord");
     
     glBindVertexArray(vertexArrayID);
     
@@ -125,7 +130,7 @@ void drawField() {
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_field);
-    glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
+    glVertexAttribPointer(texcoordId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), 0);
     
     glBindTexture(GL_TEXTURE_2D, fieldTexture);
     
@@ -140,13 +145,11 @@ void drawField() {
 
 void initGame() {
     gameLoop = 1;
-    char tmp[3][3] = { { 0 }, { 0 }, { 0 } };
     
-    memcpy(gameMatrix, tmp, 3 * 3 * sizeof(char));
+    // clean game table
+    memset(gameMatrix, 0, 3 * 3 * sizeof(char));
     
     gamer = gamerX;
-    
-    drawField();
 }
 
 int setXO(double xpos, double ypos) {
@@ -154,6 +157,10 @@ int setXO(double xpos, double ypos) {
 
     unsigned char gameMatrixXpos = 0;
     unsigned char gameMatrixYpos = 0;
+    
+    GLuint vertexId, texcoordId; // vbo
+    vertexId = glGetAttribLocation(program, "vertex_position");
+    texcoordId = glGetAttribLocation(program, "texcoord");
     
     if(xpos < windowWeight / 3) {
         gameMatrixXpos = 0;
@@ -176,18 +183,17 @@ int setXO(double xpos, double ypos) {
     }
     
     gameMatrix[gameMatrixYpos][gameMatrixXpos] = gamer;
-    
-    glBindVertexArray(1); // vertexArrayID
-    
-    glBindBuffer(GL_ARRAY_BUFFER, 3); // vertexbufferElements
-    
     unsigned char gameMatrixPos = gameMatrixYpos * 3 + gameMatrixXpos;
     
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * gameMatrixPos)); // 0 - vertexId
-    glBindBuffer(GL_ARRAY_BUFFER, 4); // vbo_texcoords_elements
+    glBindVertexArray(vertexArrayID);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
+    glVertexAttribPointer(vertexId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * gameMatrixPos));
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *)(2 * sizeof(GL_FLOAT) * 6 * (gamer - 1))); // 0 - texcoordLocation
-    glBindTexture(GL_TEXTURE_2D, 2); // elementTexture
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_elements);
+    glVertexAttribPointer(texcoordId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *)(2 * sizeof(GL_FLOAT) * 6 * (gamer - 1)));
+
+    glBindTexture(GL_TEXTURE_2D, elementTexture);
     
     glDrawArrays(GL_TRIANGLES
             , 0 // start from 0
@@ -197,6 +203,29 @@ int setXO(double xpos, double ypos) {
     return 1;
 }
 
+void drawHorizontalCrossLine(int line) {
+    printf("drawHorizontalCrossLine\n");
+    
+    GLuint vertexId, texcoordId; // vbo
+    vertexId = glGetAttribLocation(program, "vertex_position");
+    texcoordId = glGetAttribLocation(program, "texcoord");    
+    
+    glBindVertexArray(vertexArrayID);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
+    glVertexAttribPointer(vertexId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * 9));
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_elements);
+    glVertexAttribPointer(texcoordId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *)(2 * sizeof(GL_FLOAT) * 6 * 2));
+
+    glBindTexture(GL_TEXTURE_2D, elementTexture);
+    
+    glDrawArrays(GL_TRIANGLES
+            , 0 // start from 0
+            , 6 // total points.
+    );     
+}
+
 char checkWin() {
     int i = 0;
     
@@ -204,6 +233,7 @@ char checkWin() {
         if(
                 (gameMatrix[i][0] == gamerX && gameMatrix[i][1] == gamerX && gameMatrix[i][2] == gamerX)
                 || (gameMatrix[i][0] == gamerO && gameMatrix[i][1] == gamerO && gameMatrix[i][2] == gamerO)) {
+            drawHorizontalCrossLine(i);
             return 1;
         }
     }
@@ -262,6 +292,7 @@ void menuSelect(double xpos, double ypos) {
     if(xFloats > -0.9 && xFloats < -0.1 && yFloats < -0.5 && yFloats > -0.9) {
         printf("go next\n");
         initGame();
+        drawField();
     }
     
     if(xFloats < 0.9 && xFloats > 0.1 && yFloats < -0.5 && yFloats > -0.9) {
@@ -286,7 +317,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             if(checkWin() == 1) {
                 printf("Win: %d\n", gamer);
                 gameLoop = 0;
-                drawMenu();
+                //drawMenu();
                 return;
             }
 
@@ -354,14 +385,33 @@ void fillElementsVertex(GLfloat vertex_elements[]) {
             gl_vertex_buffer_data_elements[(6 * 2 * 6) + j] = gl_vertex_buffer_data_elements[j] - 1.4;
         }
     }
-    
+
     memcpy(vertex_elements, gl_vertex_buffer_data_elements, 9 * 2 * 6 * sizeof(GLfloat));
+
+    // horizontal lines
+    
+    GLfloat horizontalLineVertex[] = {
+//        -0.9, 0.5,
+//        0.9, 0.5,
+//        0.9, 0.6,
+//        0.9, 0.6,
+//        -0.9, 0.6,
+//        -0.9, 0.5
+        -1.0, -1.0,
+        1.0, -1.0,
+        1.0, 1.0,
+        1.0, 1.0,
+        -1.0, 1.0,
+        -1.0, -1.0
+    };
+    
+    memcpy(&vertex_elements[9 * 2 * 6], horizontalLineVertex, 1 * 2 * 6 * sizeof(GLfloat));
     
     return;
 }
 
 void fillElementsTexCoords(GLfloat texcoords_elements[]) {
-    GLfloat gl_texcoords_buffer_data_elements[2 * 2 * 6] = {
+    GLfloat gl_texcoords_buffer_data_elements[3 * 2 * 6] = {
         // texture 1
         0.0, 0.8,
         0.2, 0.8,
@@ -377,9 +427,21 @@ void fillElementsTexCoords(GLfloat texcoords_elements[]) {
         0.4, 1.0,
         0.2, 1.0,
         0.2, 0.8,
+        
+        // texture 3
+        
+        // texture 4
+        
+        // texture 5
+        0.0, 0.6,
+        0.2, 0.6,
+        0.2, 0.8,
+        0.2, 0.8,
+        0.0, 0.8,
+        0.0, 0.6,
     };
     
-    memcpy(texcoords_elements, gl_texcoords_buffer_data_elements, 2 * 2 * 6 * sizeof(GLfloat));
+    memcpy(texcoords_elements, gl_texcoords_buffer_data_elements, 3 * 2 * 6 * sizeof(GLfloat));
     
     return;
 }
@@ -445,6 +507,7 @@ int main(int argv, char *argc[]) {
     glfwSwapInterval(1);
 
     glfwGetWindowSize(window, &windowWeight, &windowHeight);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     
     program = loadShader();
     
@@ -461,10 +524,10 @@ int main(int argv, char *argc[]) {
     glEnableVertexAttribArray(vertexId);
     printf("vertexId (shader ID of vertex_position): %d\n", vertexId);
     
-    GLint texcoordLocation = -1;
-    texcoordLocation = glGetAttribLocation(program, "texcoord");
-    glEnableVertexAttribArray(texcoordLocation);
-    printf("texcoordLocation (shader ID of texcoord): %hi\n", texcoordLocation);
+    GLint texcoordId = -1;
+    texcoordId = glGetAttribLocation(program, "texcoord");
+    glEnableVertexAttribArray(texcoordId);
+    printf("texcoordId (shader ID of texcoord): %hi\n", texcoordId);
 
     //
     
@@ -505,7 +568,6 @@ int main(int argv, char *argc[]) {
     
     //printf("total points: %d\n", (int)((sizeof(gl_vertex_buffer_data_field) / sizeof(GLfloat)) / 2));
     
-    GLuint elementTexture = 0;
     elementTexture = TextureFromTGA("images/elements.tga");
 
     printf("elementTexture Id %hi\n", elementTexture);
@@ -515,13 +577,12 @@ int main(int argv, char *argc[]) {
         return EXIT_FAILURE;
     }
 
-    GLfloat gl_vertex_buffer_data_elements[9 * 2 * 6] = { 0 };
+    GLfloat gl_vertex_buffer_data_elements[10 * 2 * 6] = { 0 };
     fillElementsVertex(gl_vertex_buffer_data_elements);
     
-    GLfloat gl_texcoords_buffer_data_elements[2 * 2 * 6] = { 0 };
+    GLfloat gl_texcoords_buffer_data_elements[25 * 2 * 6] = { 0 };
     fillElementsTexCoords(gl_texcoords_buffer_data_elements);
     
-    GLuint vertexbufferElements; // vbo
     glGenBuffers(1, &vertexbufferElements);
     
     printf("vertexbufferElements Id: %d\n", vertexbufferElements);
@@ -530,7 +591,6 @@ int main(int argv, char *argc[]) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data_elements), gl_vertex_buffer_data_elements, GL_STATIC_DRAW);
 
     
-    GLuint vbo_texcoords_elements;
     glGenBuffers(1, &vbo_texcoords_elements);
     
     printf("vbo_texcoords_elements Id: %d\n", vbo_texcoords_elements);
@@ -545,13 +605,8 @@ int main(int argv, char *argc[]) {
     glBindTexture(GL_TEXTURE_2D, 0); // unbind
     glBindVertexArray(0);
 
-    drawField(
-                 
-                );
-    
-    gameLoop = 1;
-    
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    initGame();
+    drawField();
     
     while(glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         glfwSwapBuffers(window);
@@ -559,7 +614,7 @@ int main(int argv, char *argc[]) {
     }
 
     //glDisableVertexAttribArray(vertexId);
-    //glDisableVertexAttribArray(texcoordLocation);
+    //glDisableVertexAttribArray(texcoordId);
     
     glfwDestroyWindow(window);
     glfwTerminate();
