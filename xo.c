@@ -213,10 +213,56 @@ void drawHorizontalCrossLine(int line) {
     glBindVertexArray(vertexArrayID);
     
     glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
-    glVertexAttribPointer(vertexId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * 9));
+    glVertexAttribPointer(vertexId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * (9 + line)));
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_elements);
-    glVertexAttribPointer(texcoordId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *)(2 * sizeof(GL_FLOAT) * 6 * 2));
+    glVertexAttribPointer(texcoordId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *)(2 * sizeof(GL_FLOAT) * 6 * 4));
+
+    glBindTexture(GL_TEXTURE_2D, elementTexture);
+    
+    glDrawArrays(GL_TRIANGLES
+            , 0 // start from 0
+            , 6 // total points.
+    );     
+}
+
+void drawVerticalCrossLine(int line) {
+    printf("drawVerticalCrossLine %d\n", line);
+    
+    GLuint vertexId, texcoordId; // vbo
+    vertexId = glGetAttribLocation(program, "vertex_position");
+    texcoordId = glGetAttribLocation(program, "texcoord");    
+    
+    glBindVertexArray(vertexArrayID);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
+    glVertexAttribPointer(vertexId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * (12 + line)));
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_elements);
+    glVertexAttribPointer(texcoordId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *)(2 * sizeof(GL_FLOAT) * 6 * 4));
+
+    glBindTexture(GL_TEXTURE_2D, elementTexture);
+    
+    glDrawArrays(GL_TRIANGLES
+            , 0 // start from 0
+            , 6 // total points.
+    );     
+}
+
+void drawXCrossLine(int line) {
+    printf("drawXCrossLine %d\n", line);
+    
+    GLuint vertexId, texcoordId; // vbo
+    vertexId = glGetAttribLocation(program, "vertex_position");
+    texcoordId = glGetAttribLocation(program, "texcoord");    
+    
+    glBindVertexArray(vertexArrayID);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
+    glVertexAttribPointer(vertexId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * 15));
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_elements);
+    glVertexAttribPointer(texcoordId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *)(2 * sizeof(GL_FLOAT) * 6 * (2 + line)));
 
     glBindTexture(GL_TEXTURE_2D, elementTexture);
     
@@ -242,6 +288,7 @@ char checkWin() {
         if(
                 (gameMatrix[0][i] == gamerX && gameMatrix[1][i] == gamerX && gameMatrix[2][i] == gamerX)
                 || (gameMatrix[0][i] == gamerO && gameMatrix[1][i] == gamerO && gameMatrix[2][i] == gamerO)) {
+            drawVerticalCrossLine(i);
             return 1;
         }
     }
@@ -249,12 +296,14 @@ char checkWin() {
     if(
             (gameMatrix[0][0] == gamerX && gameMatrix[1][1] == gamerX && gameMatrix[2][2] == gamerX)
             || (gameMatrix[0][0] == gamerO && gameMatrix[1][1] == gamerO && gameMatrix[2][2] == gamerO)) {
+        drawXCrossLine(0);
         return 1;
     }
     
     if(
             (gameMatrix[0][2] == gamerX && gameMatrix[1][1] == gamerX && gameMatrix[2][0] == gamerX)
             || (gameMatrix[0][2] == gamerO && gameMatrix[1][1] == gamerO && gameMatrix[2][0] == gamerO)) {
+        drawXCrossLine(1);
         return 1;
     }
     
@@ -390,28 +439,71 @@ void fillElementsVertex(GLfloat vertex_elements[]) {
 
     // horizontal lines
     
-    GLfloat horizontalLineVertex[] = {
-//        -0.9, 0.5,
-//        0.9, 0.5,
-//        0.9, 0.6,
-//        0.9, 0.6,
-//        -0.9, 0.6,
-//        -0.9, 0.5
+    GLfloat crossLineVertex[] = {
+        //horizontal 1
+        -0.9, 0.75,
+        0.9, 0.75,
+        0.9, 0.65,
+        0.9, 0.65,
+        -0.9, 0.65,
+        -0.9, 0.75,
+        
+        //horizontal 2
+        -0.9, 0.05,
+        0.9, 0.05,
+        0.9, -0.05,
+        0.9, -0.05,
+        -0.9, -0.05,
+        -0.9, 0.05,
+        
+        //horizontal 3
+        -0.9, -0.65,
+        0.9, -0.65,
+        0.9, -0.75,
+        0.9, -0.75,
+        -0.9, -0.75,
+        -0.9, -0.65,  
+        
+        //vertical 1
+        -0.75, -0.9,
+        -0.65, -0.9,
+        -0.65, 0.9,
+        -0.65, 0.9,
+        -0.75, 0.9,
+        -0.75, -0.9,  
+        
+        //vertical 2
+        -0.05, -0.9,
+        0.05, -0.9,
+        0.05, 0.9,
+        0.05, 0.9,
+        -0.05, 0.9,
+        -0.05, -0.9,  
+        
+        //vertical 3
+        0.65, -0.9,
+        0.75, -0.9,
+        0.75, 0.9,
+        0.75, 0.9,
+        0.65, 0.9,
+        0.65, -0.9,  
+        
+        // cross
         -1.0, -1.0,
         1.0, -1.0,
         1.0, 1.0,
         1.0, 1.0,
         -1.0, 1.0,
-        -1.0, -1.0
+        -1.0, -1.0        
     };
     
-    memcpy(&vertex_elements[9 * 2 * 6], horizontalLineVertex, 1 * 2 * 6 * sizeof(GLfloat));
+    memcpy(&vertex_elements[9 * 2 * 6], crossLineVertex, 7 * 2 * 6 * sizeof(GLfloat));
     
     return;
 }
 
 void fillElementsTexCoords(GLfloat texcoords_elements[]) {
-    GLfloat gl_texcoords_buffer_data_elements[3 * 2 * 6] = {
+    GLfloat gl_texcoords_buffer_data_elements[6 * 2 * 6] = {
         // texture 1
         0.0, 0.8,
         0.2, 0.8,
@@ -428,20 +520,40 @@ void fillElementsTexCoords(GLfloat texcoords_elements[]) {
         0.2, 1.0,
         0.2, 0.8,
         
-        // texture 3
+        // texture 3 - slash from left to right
+        0.4, 0.8,
+        0.6, 0.8,
+        0.6, 1.0,
+        0.6, 1.0,
+        0.4, 1.0,
+        0.4, 0.8,
         
-        // texture 4
+        // texture 4 - /
+        0.6, 0.8,
+        0.8, 0.8,
+        0.8, 1.0,
+        0.8, 1.0,
+        0.6, 1.0,
+        0.6, 0.8,
         
-        // texture 5
+        // texture 5 - |
+        0.8, 0.8,
+        1.0, 0.8,
+        1.0, 1.0,
+        1.0, 1.0,
+        0.8, 1.0,
+        0.8, 0.8,
+        
+        // texture 6 - -
         0.0, 0.6,
         0.2, 0.6,
         0.2, 0.8,
         0.2, 0.8,
         0.0, 0.8,
-        0.0, 0.6,
+        0.0, 0.6,        
     };
     
-    memcpy(texcoords_elements, gl_texcoords_buffer_data_elements, 3 * 2 * 6 * sizeof(GLfloat));
+    memcpy(texcoords_elements, gl_texcoords_buffer_data_elements, 6 * 2 * 6 * sizeof(GLfloat));
     
     return;
 }
@@ -483,8 +595,6 @@ int main(int argv, char *argc[]) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
-    
-    
     
     window = glfwCreateWindow(100, 100, "XO", NULL, NULL);
     if(window == NULL) {
@@ -577,7 +687,7 @@ int main(int argv, char *argc[]) {
         return EXIT_FAILURE;
     }
 
-    GLfloat gl_vertex_buffer_data_elements[10 * 2 * 6] = { 0 };
+    GLfloat gl_vertex_buffer_data_elements[16 * 2 * 6] = { 0 };
     fillElementsVertex(gl_vertex_buffer_data_elements);
     
     GLfloat gl_texcoords_buffer_data_elements[25 * 2 * 6] = { 0 };

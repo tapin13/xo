@@ -26,6 +26,8 @@ GLuint TextureFromTGA(const char *filename) {
     GLuint texture;
     
     uint8_t *buffer;
+
+    printf("filename: %s\n", filename);
     
     buffer = readFile(filename, 1);
     
@@ -34,6 +36,10 @@ GLuint TextureFromTGA(const char *filename) {
     }
     
     header = (struct TGAHeader*)buffer;
+    
+    
+    printf("file bitperpel %d\n", header->bitperpel);
+    printf("file datatype %d\n", header->datatype);
     
     /*
     printf("file idlength %d\n", header->idlength);
@@ -49,6 +55,9 @@ GLuint TextureFromTGA(const char *filename) {
     
     format = header->bitperpel == 24 ? GL_RGB : GL_RGBA;
     internalFormat = format == GL_RGB ? GL_RGB8 : GL_RGBA8;
+    
+    printf("file format %x\n", format);
+    printf("file internalFormat %x\n", internalFormat);
     
     glGenTextures(1, &texture);
     glActiveTexture(GL_TEXTURE0);
