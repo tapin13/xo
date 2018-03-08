@@ -715,6 +715,9 @@ int main(int argv, char *argc[]) {
     glBindTexture(GL_TEXTURE_2D, 0); // unbind
     glBindVertexArray(0);
 
+glEnable(GL_BLEND);
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    
+    
     initGame();
     drawField();
     
