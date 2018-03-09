@@ -53,8 +53,11 @@ GLuint TextureFromTGA(const char *filename) {
     printf("file description %d\n", header->description);
     */
     
-    format = header->bitperpel == 24 ? GL_RGB : GL_RGBA;
-    internalFormat = format == GL_RGB ? GL_RGB8 : GL_RGBA8;
+//    format = header->bitperpel == 24 ? GL_RGB : GL_RGBA;
+//    internalFormat = format == GL_RGB ? GL_RGB8 : GL_RGBA8;
+    
+    format = header->bitperpel == 24 ? GL_BGR : GL_BGRA;
+    internalFormat = (format == GL_BGR ? GL_RGB8 : GL_RGBA8);
     
     printf("file format %x\n", format);
     printf("file internalFormat %x\n", internalFormat);

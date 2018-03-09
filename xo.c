@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <math.h>
 
 #include <GL/glew.h>
@@ -8,6 +9,8 @@
 
 #include "loadShader.h"
 #include "tgaLoad.h"
+
+#define DELAY_BEFORE_MENU_DRAW 3
 
 #define gamerX 1
 #define gamerO 2
@@ -82,6 +85,13 @@ void initMenu() {
 }
 
 void drawMenu() {
+    glfwSwapBuffers(window); // have to output all graphics that draw before
+    
+    double time = glfwGetTime();
+    while(glfwGetTime() - time < DELAY_BEFORE_MENU_DRAW) {
+        
+    }
+    
     GLuint vertexId, texcoordId; // vbo
     vertexId = glGetAttribLocation(program, "vertex_position");
     texcoordId = glGetAttribLocation(program, "texcoord");
@@ -200,6 +210,8 @@ int setXO(double xpos, double ypos) {
             , 6 // total points.
     ); 
 
+    printf("setXO %f %f done\n", xpos, ypos);
+    
     return 1;
 }
 
@@ -366,7 +378,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             if(checkWin() == 1) {
                 printf("Win: %d\n", gamer);
                 gameLoop = 0;
-                //drawMenu();
+                drawMenu();
                 return;
             }
 
@@ -622,6 +634,8 @@ int main(int argv, char *argc[]) {
     program = loadShader();
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glUseProgram(program);
 
     glGenVertexArrays(1, &vertexArrayID);
@@ -715,8 +729,6 @@ int main(int argv, char *argc[]) {
     glBindTexture(GL_TEXTURE_2D, 0); // unbind
     glBindVertexArray(0);
 
-glEnable(GL_BLEND);
-glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    
     
     initGame();
     drawField();
