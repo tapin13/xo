@@ -85,12 +85,11 @@ void initMenu() {
 }
 
 void drawMenu() {
-    //glfwSwapBuffers(window); // have to output all graphics that draw before
-    
     double time = glfwGetTime();
-    while(glfwGetTime() - time < DELAY_BEFORE_MENU_DRAW) {
-        
-    }
+    while(gameLoop == 0 && glfwGetTime() - time < DELAY_BEFORE_MENU_DRAW) {}
+    
+    printf("drawMenu\n");
+    //glfwSwapBuffers(window); // have to output all graphics that draw before
     
     GLuint vertexId, texcoordId; // vbo
     vertexId = glGetAttribLocation(program, "vertex_position");
@@ -154,8 +153,9 @@ void drawField() {
 }
 
 void initGame() {
+    printf("initGame\n");
     gameLoop = 1;
-    
+
     // clean game table
     memset(gameMatrix, 0, 3 * 3 * sizeof(char));
     
@@ -163,7 +163,7 @@ void initGame() {
 }
 
 int setXO(double xpos, double ypos) {
-    printf("setXO %f %f\n", xpos, ypos);
+    //printf("setXO %f %f\n", xpos, ypos);
 
     unsigned char gameMatrixXpos = 0;
     unsigned char gameMatrixYpos = 0;
@@ -210,7 +210,6 @@ int setXO(double xpos, double ypos) {
             , 6 // total points.
     ); 
 glfwSwapBuffers(window);
-    printf("setXO %f %f done\n", xpos, ypos);
     
     return 1;
 }
@@ -735,10 +734,10 @@ int main(int argv, char *argc[]) {
     
     initGame();
     drawField();
-
     
     while(glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         //glfwSwapBuffers(window);
+
         glfwPollEvents();
     }
 
