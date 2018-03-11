@@ -85,7 +85,7 @@ void initMenu() {
 }
 
 void drawMenu() {
-    glfwSwapBuffers(window); // have to output all graphics that draw before
+    //glfwSwapBuffers(window); // have to output all graphics that draw before
     
     double time = glfwGetTime();
     while(glfwGetTime() - time < DELAY_BEFORE_MENU_DRAW) {
@@ -117,7 +117,7 @@ void drawMenu() {
             , 0 // start from 0
             , 6
     );
-    
+    glfwSwapBuffers(window);
     glBindTexture(GL_TEXTURE_2D, 0); // unbind
     glBindVertexArray(0);    
 }
@@ -148,7 +148,7 @@ void drawField() {
             , 0 // start from 0
             , 6
     );
-    
+    glfwSwapBuffers(window);
     glBindTexture(GL_TEXTURE_2D, 0); // unbind
     glBindVertexArray(0);
 }
@@ -209,7 +209,7 @@ int setXO(double xpos, double ypos) {
             , 0 // start from 0
             , 6 // total points.
     ); 
-
+glfwSwapBuffers(window);
     printf("setXO %f %f done\n", xpos, ypos);
     
     return 1;
@@ -236,6 +236,7 @@ void drawHorizontalCrossLine(int line) {
             , 0 // start from 0
             , 6 // total points.
     );     
+glfwSwapBuffers(window);
 }
 
 void drawVerticalCrossLine(int line) {
@@ -259,6 +260,7 @@ void drawVerticalCrossLine(int line) {
             , 0 // start from 0
             , 6 // total points.
     );     
+glfwSwapBuffers(window);
 }
 
 void drawXCrossLine(int line) {
@@ -282,6 +284,7 @@ void drawXCrossLine(int line) {
             , 0 // start from 0
             , 6 // total points.
     );     
+glfwSwapBuffers(window);
 }
 
 char checkWin() {
@@ -732,9 +735,10 @@ int main(int argv, char *argc[]) {
     
     initGame();
     drawField();
+
     
     while(glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
-        glfwSwapBuffers(window);
+        //glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
