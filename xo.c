@@ -42,9 +42,6 @@ GLuint elementTexture = 0;
 
 void initMenu() {
     menuTexture = TextureFromTGA("images/menu.tga");
-
-    printf("menuTexture Id %hi\n", menuTexture);
-    
     if(menuTexture == -1) {
         printf("menuTexture - fail\n");
         return;
@@ -633,11 +630,11 @@ int main(int argv, char *argc[]) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glUseProgram(program);
 
-    glGenVertexArrays(1, &vertexArrayID);
-    printf("vertexArrayID Id (VAO): %d\n", vertexArrayID);
+    // Init VAO
+    glGenVertexArrays(1, &vertexArrayID); // VAO
     glBindVertexArray(vertexArrayID);
 
-    
+    // Init VBO
     GLuint vertexId; // vbo
     vertexId = glGetAttribLocation(program, "vertex_position");
     glEnableVertexAttribArray(vertexId);
