@@ -31,14 +31,14 @@ GLuint vbo_texcoords_field;
 GLuint fieldTexture = 0;
 
 // menu
-GLuint menuTexture = 0;
 GLuint vertexbufferMenu; // vbo
 GLuint vbo_texcoords_menu;
+GLuint menuTexture = 0;
 
 // elements
-GLuint elementTexture = 0;
 GLuint vertexbufferElements; // vbo
 GLuint vbo_texcoords_elements;
+GLuint elementTexture = 0;
 
 void initMenu() {
     menuTexture = TextureFromTGA("images/menu.tga");
@@ -68,16 +68,10 @@ void initMenu() {
     };    
     
     glGenBuffers(1, &vertexbufferMenu);
-    
-    printf("vertexbufferMenu Id: %d\n", vertexbufferMenu);
-    
     glBindBuffer(GL_ARRAY_BUFFER, vertexbufferMenu);
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data), gl_vertex_buffer_data, GL_STATIC_DRAW);
 
     glGenBuffers(1, &vbo_texcoords_menu);
-    
-    printf("vbo_texcoords_menu Id: %d\n", vbo_texcoords_menu);
-    
     glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_menu);
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data), gl_texcoords_buffer_data, GL_STATIC_DRAW);
     
@@ -209,7 +203,7 @@ int setXO(double xpos, double ypos) {
             , 0 // start from 0
             , 6 // total points.
     ); 
-glfwSwapBuffers(window);
+    glfwSwapBuffers(window);
     
     return 1;
 }
@@ -235,7 +229,7 @@ void drawHorizontalCrossLine(int line) {
             , 0 // start from 0
             , 6 // total points.
     );     
-glfwSwapBuffers(window);
+    glfwSwapBuffers(window);
 }
 
 void drawVerticalCrossLine(int line) {
@@ -259,7 +253,7 @@ void drawVerticalCrossLine(int line) {
             , 0 // start from 0
             , 6 // total points.
     );     
-glfwSwapBuffers(window);
+    glfwSwapBuffers(window);
 }
 
 void drawXCrossLine(int line) {
@@ -283,7 +277,7 @@ void drawXCrossLine(int line) {
             , 0 // start from 0
             , 6 // total points.
     );     
-glfwSwapBuffers(window);
+    glfwSwapBuffers(window);
 }
 
 char checkWin() {
@@ -371,7 +365,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         glfwGetCursorPos(window, &xpos, &ypos);
         
         if(gameLoop == 1) {
-            printf("gameLoop left pressed\n" );
+            printf("gameLoop - left pressed\n" );
 
             if(setXO(xpos, ypos) != 1) {
                 return;
@@ -397,7 +391,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
                 gamer = gamerX;
             }        
         } else {
-            printf("menu left pressed\n" );
+            printf("menu - left pressed\n" );
             
             menuSelect(xpos, ypos);
         }
@@ -599,7 +593,6 @@ void fillFieldVertex(GLfloat vertex_buffer_data[], GLfloat texcoords_buffer_data
 }
 
 int main(int argv, char *argc[]) {
-    
     if(!glfwInit()){
         printf("Failed to initialize GLFW\n" );
         return EXIT_FAILURE;
@@ -648,12 +641,10 @@ int main(int argv, char *argc[]) {
     GLuint vertexId; // vbo
     vertexId = glGetAttribLocation(program, "vertex_position");
     glEnableVertexAttribArray(vertexId);
-    printf("vertexId (shader ID of vertex_position): %d\n", vertexId);
     
     GLint texcoordId = -1;
     texcoordId = glGetAttribLocation(program, "texcoord");
     glEnableVertexAttribArray(texcoordId);
-    printf("texcoordId (shader ID of texcoord): %hi\n", texcoordId);
 
     //
     
@@ -662,42 +653,21 @@ int main(int argv, char *argc[]) {
     fillFieldVertex(gl_vertex_buffer_data_field, gl_texcoords_buffer_data_field);
     
     glGenBuffers(1, &vertexbufferField);
-    
-    printf("vertexbufferField Id (field): %d\n", vertexbufferField);
-    
     glBindBuffer(GL_ARRAY_BUFFER, vertexbufferField);
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data_field), gl_vertex_buffer_data_field, GL_STATIC_DRAW);
     
-    /* teksturki miltso... start */
-
-    
     fieldTexture = TextureFromTGA("images/field.tga");
 
-    printf("fieldTexture Id %hi\n", fieldTexture);
-    
     if(fieldTexture == -1) {
         printf("fieldTexture - fail\n");
         return EXIT_FAILURE;
     }
     
-    
     glGenBuffers(1, &vbo_texcoords_field);
-    
-    printf("vbo_texcoords_field Id: %d\n", vbo_texcoords_field);
-    
     glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_field);
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data_field), gl_texcoords_buffer_data_field, GL_STATIC_DRAW);
     
-    //glBindTexture(GL_TEXTURE_2D, 0); // unbind
-    
-    /* teksturki miltso... end */
-    
-    //printf("total points: %d\n", (int)((sizeof(gl_vertex_buffer_data_field) / sizeof(GLfloat)) / 2));
-    
     elementTexture = TextureFromTGA("images/elements.tga");
-
-    printf("elementTexture Id %hi\n", elementTexture);
-    
     if(elementTexture == -1) {
         printf("elementTexture - fail\n");
         return EXIT_FAILURE;
@@ -710,17 +680,11 @@ int main(int argv, char *argc[]) {
     fillElementsTexCoords(gl_texcoords_buffer_data_elements);
     
     glGenBuffers(1, &vertexbufferElements);
-    
-    printf("vertexbufferElements Id: %d\n", vertexbufferElements);
-    
     glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data_elements), gl_vertex_buffer_data_elements, GL_STATIC_DRAW);
 
     
     glGenBuffers(1, &vbo_texcoords_elements);
-    
-    printf("vbo_texcoords_elements Id: %d\n", vbo_texcoords_elements);
-    
     glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_elements);
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data_elements), gl_texcoords_buffer_data_elements, GL_STATIC_DRAW);
     
