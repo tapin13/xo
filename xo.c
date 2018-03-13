@@ -75,9 +75,11 @@ void initMenu() {
     return;
 }
 
-void drawMenu() {
-    double time = glfwGetTime();
-    while(gameLoop == 0 && glfwGetTime() - time < DELAY_BEFORE_MENU_DRAW) {}
+void drawMenu(char wait) {
+    if(wait == 1) {
+        double time = glfwGetTime();
+        while(gameLoop == 0 && glfwGetTime() - time < DELAY_BEFORE_MENU_DRAW) {}
+    }
     
     printf("drawMenu\n");
     //glfwSwapBuffers(window); // have to output all graphics that draw before
@@ -153,15 +155,33 @@ void initGame() {
     gamer = gamerX;
 }
 
+void drawXO(unsigned char position, char gamer) {
+    GLuint vertexId, texcoordId; // vbo
+    vertexId = glGetAttribLocation(program, "vertex_position");
+    texcoordId = glGetAttribLocation(program, "texcoord");
+    
+    glBindVertexArray(vertexArrayID);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
+    glVertexAttribPointer(vertexId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * position));
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_elements);
+    glVertexAttribPointer(texcoordId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *)(2 * sizeof(GL_FLOAT) * 6 * (gamer - 1)));
+
+    glBindTexture(GL_TEXTURE_2D, elementTexture);
+    
+    glDrawArrays(GL_TRIANGLES
+            , 0 // start from 0
+            , 6 // total points.
+    ); 
+    glfwSwapBuffers(window);    
+}
+
 int setXO(double xpos, double ypos) {
     //printf("setXO %f %f\n", xpos, ypos);
 
     unsigned char gameMatrixXpos = 0;
     unsigned char gameMatrixYpos = 0;
-    
-    GLuint vertexId, texcoordId; // vbo
-    vertexId = glGetAttribLocation(program, "vertex_position");
-    texcoordId = glGetAttribLocation(program, "texcoord");
     
     if(xpos < windowWeight / 3) {
         gameMatrixXpos = 0;
@@ -186,21 +206,7 @@ int setXO(double xpos, double ypos) {
     gameMatrix[gameMatrixYpos][gameMatrixXpos] = gamer;
     unsigned char gameMatrixPos = gameMatrixYpos * 3 + gameMatrixXpos;
     
-    glBindVertexArray(vertexArrayID);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
-    glVertexAttribPointer(vertexId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * gameMatrixPos));
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_elements);
-    glVertexAttribPointer(texcoordId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *)(2 * sizeof(GL_FLOAT) * 6 * (gamer - 1)));
-
-    glBindTexture(GL_TEXTURE_2D, elementTexture);
-    
-    glDrawArrays(GL_TRIANGLES
-            , 0 // start from 0
-            , 6 // total points.
-    ); 
-    glfwSwapBuffers(window);
+    drawXO(gameMatrixPos, gamer);
     
     return 1;
 }
@@ -355,6 +361,55 @@ void menuSelect(double xpos, double ypos) {
     }
 }
 
+void redrawAll() {
+    if(gameLoop == 0) {
+        drawMenu(0);
+        return;
+    }
+        
+    drawField();
+
+    // draw x - o on field
+    int i = 0, j = 0;
+    for(i = 0; i < 3; i++) {
+        for(j = 0; j < 3; j++) {
+            drawXO(i * 3 + j, gameMatrix[i][j]);
+        }
+    }
+    
+    if(checkWin() == 1) {
+        gameLoop = 0;
+        drawMenu(0);
+        return;
+    }
+
+    if(checkDraw() == 1) {
+        gameLoop = 0;
+        drawMenu(0);
+        return;
+    }
+}
+
+/*
+void window_refresh_callback(GLFWwindow* window) {
+    printf("window_refresh_callback\n");
+}
+*/
+
+void window_size_callback(GLFWwindow* window, int width, int height) {
+    printf("window_size_callback %d, %d\n", width, height);
+    windowWeight = width;
+    windowHeight = height;
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    redrawAll();
+    
+    glViewport(0, 0, width, height);
+    
+    glfwSwapBuffers(window);
+}
+
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     double xpos, ypos;
     
@@ -371,14 +426,14 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             if(checkWin() == 1) {
                 printf("Win: %d\n", gamer);
                 gameLoop = 0;
-                drawMenu();
+                drawMenu(1);
                 return;
             }
 
             if(checkDraw() == 1) {
                 printf("Draw\n" );
                 gameLoop = 0;
-                drawMenu();
+                drawMenu(1);
                 return;
             }
 
@@ -606,6 +661,7 @@ int main(int argv, char *argc[]) {
         glfwTerminate();
         return EXIT_FAILURE;
     }
+    glfwSetWindowAspectRatio(window, 1, 1); // in general can be removed, just for beauty
     
     glfwMakeContextCurrent(window); // Initialize GLEW
 
@@ -620,8 +676,11 @@ int main(int argv, char *argc[]) {
     glfwSetInputMode(window, GLFW_CURSOR, GL_TRUE);
     glfwSwapInterval(1);
 
-    glfwGetWindowSize(window, &windowWeight, &windowHeight);
+    //glfwSetWindowRefreshCallback(window, window_refresh_callback);
+    glfwSetWindowSizeCallback(window, window_size_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+
+    glfwGetWindowSize(window, &windowWeight, &windowHeight);
     
     program = loadShader();
     
