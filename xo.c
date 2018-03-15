@@ -89,7 +89,7 @@ void drawMenu(char wait) {
     printf("drawMenu\n");
     //glfwSwapBuffers(window); // have to output all graphics that draw before
     
-    GLuint vertexId, texcoordId; // vbo
+    GLuint vertexId, texcoordId;
     vertexId = glGetAttribLocation(program, "vertex_position");
     texcoordId = glGetAttribLocation(program, "texcoord");
     
@@ -227,7 +227,7 @@ void initGame() {
 }
 
 void drawXO(unsigned char position, char gamer) {
-    GLuint vertexId, texcoordId; // vbo
+    GLuint vertexId, texcoordId;
     vertexId = glGetAttribLocation(program, "vertex_position");
     texcoordId = glGetAttribLocation(program, "texcoord");
     
@@ -293,7 +293,7 @@ int setXO(double xpos, double ypos) {
 void drawHorizontalCrossLine(int line) {
     printf("drawHorizontalCrossLine\n");
     
-    GLuint vertexId, texcoordId; // vbo
+    GLuint vertexId, texcoordId;
     vertexId = glGetAttribLocation(program, "vertex_position");
     texcoordId = glGetAttribLocation(program, "texcoord");    
     
@@ -325,7 +325,7 @@ void drawHorizontalCrossLine(int line) {
 void drawVerticalCrossLine(int line) {
     printf("drawVerticalCrossLine %d\n", line);
     
-    GLuint vertexId, texcoordId; // vbo
+    GLuint vertexId, texcoordId;
     vertexId = glGetAttribLocation(program, "vertex_position");
     texcoordId = glGetAttribLocation(program, "texcoord");    
     
@@ -357,7 +357,7 @@ void drawVerticalCrossLine(int line) {
 void drawXCrossLine(int line) {
     printf("drawXCrossLine %d\n", line);
     
-    GLuint vertexId, texcoordId; // vbo
+    GLuint vertexId, texcoordId;
     vertexId = glGetAttribLocation(program, "vertex_position");
     texcoordId = glGetAttribLocation(program, "texcoord");    
     
@@ -525,7 +525,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             }
 
             if(checkWin() == 1) {
-                printf("Win: %d\n", gamer);
+                printf("Win: %d\n", (int)gamer);
                 gameLoop = 0;
                 drawMenu(1);
                 return;
