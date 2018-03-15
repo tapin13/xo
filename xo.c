@@ -64,13 +64,18 @@ void initMenu() {
         0.0, 0.0
     };    
     
+    glBindVertexArray(vertexArrayID);
+    
     glGenBuffers(1, &vertexbufferMenu);
     glBindBuffer(GL_ARRAY_BUFFER, vertexbufferMenu);
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data), gl_vertex_buffer_data, GL_STATIC_DRAW);
-
+    
     glGenBuffers(1, &vbo_texcoords_menu);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_menu);
     glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data), gl_texcoords_buffer_data, GL_STATIC_DRAW);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
     
     return;
 }
@@ -89,6 +94,9 @@ void drawMenu(char wait) {
     texcoordId = glGetAttribLocation(program, "texcoord");
     
     glBindVertexArray(vertexArrayID);
+
+    glEnableVertexAttribArray(vertexId);
+    glEnableVertexAttribArray(texcoordId);
     
     glBindBuffer(GL_ARRAY_BUFFER, vertexbufferMenu);
     glVertexAttribPointer(
@@ -110,8 +118,65 @@ void drawMenu(char wait) {
             , 6
     );
     glfwSwapBuffers(window);
+    
     glBindTexture(GL_TEXTURE_2D, 0); // unbind
+    glDisableVertexAttribArray(vertexId);
+    glDisableVertexAttribArray(texcoordId);
     glBindVertexArray(0);    
+}
+
+
+void fillFieldVertex(GLfloat vertex_buffer_data[], GLfloat texcoords_buffer_data[]) {
+    GLfloat gl_vertex_buffer_data_field[2 * 6] = {
+        -1.0, -1.0,
+        1.0, -1.0,
+        1.0, 1.0,
+        1.0, 1.0,
+        -1.0, 1.0,
+        -1.0, -1.0
+    };
+    
+    memcpy(vertex_buffer_data, gl_vertex_buffer_data_field, 2 * 6 * sizeof(GLfloat));
+    
+    GLfloat gl_texcoords_buffer_data_field[2 * 6] = {
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
+        1.0, 1.0,
+        0.0, 1.0,
+        0.0, 0.0
+    };
+    
+    memcpy(texcoords_buffer_data, gl_texcoords_buffer_data_field, 2 * 6 * sizeof(GLfloat));
+    
+    return;
+}
+
+void initField() {
+    glBindVertexArray(vertexArrayID);
+    
+    GLfloat gl_vertex_buffer_data_field[2 * 6];
+    GLfloat gl_texcoords_buffer_data_field[2 * 6];
+    fillFieldVertex(gl_vertex_buffer_data_field, gl_texcoords_buffer_data_field);
+    
+    glGenBuffers(1, &vertexbufferField);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferField);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data_field), gl_vertex_buffer_data_field, GL_STATIC_DRAW);
+    
+    fieldTexture = TextureFromTGA("images/field.tga");
+
+    if(fieldTexture == -1) {
+        printf("fieldTexture - fail\n");
+        return;
+    }
+    
+    glGenBuffers(1, &vbo_texcoords_field);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_field);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data_field), gl_texcoords_buffer_data_field, GL_STATIC_DRAW);
+    
+    glBindVertexArray(0);
+    
+    return;
 }
 
 void drawField() {
@@ -120,6 +185,9 @@ void drawField() {
     texcoordId = glGetAttribLocation(program, "texcoord");
     
     glBindVertexArray(vertexArrayID);
+    
+    glEnableVertexAttribArray(vertexId);
+    glEnableVertexAttribArray(texcoordId);
     
     glBindBuffer(GL_ARRAY_BUFFER, vertexbufferField);
     glVertexAttribPointer(
@@ -141,7 +209,10 @@ void drawField() {
             , 6
     );
     glfwSwapBuffers(window);
+    
     glBindTexture(GL_TEXTURE_2D, 0); // unbind
+    glDisableVertexAttribArray(vertexId);
+    glDisableVertexAttribArray(texcoordId);
     glBindVertexArray(0);
 }
 
@@ -161,6 +232,9 @@ void drawXO(unsigned char position, char gamer) {
     texcoordId = glGetAttribLocation(program, "texcoord");
     
     glBindVertexArray(vertexArrayID);
+
+    glEnableVertexAttribArray(vertexId);
+    glEnableVertexAttribArray(texcoordId);
     
     glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
     glVertexAttribPointer(vertexId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * position));
@@ -174,7 +248,12 @@ void drawXO(unsigned char position, char gamer) {
             , 0 // start from 0
             , 6 // total points.
     ); 
-    glfwSwapBuffers(window);    
+    glfwSwapBuffers(window);
+    
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind
+    glDisableVertexAttribArray(vertexId);
+    glDisableVertexAttribArray(texcoordId);
+    glBindVertexArray(0);
 }
 
 int setXO(double xpos, double ypos) {
@@ -219,6 +298,9 @@ void drawHorizontalCrossLine(int line) {
     texcoordId = glGetAttribLocation(program, "texcoord");    
     
     glBindVertexArray(vertexArrayID);
+
+    glEnableVertexAttribArray(vertexId);
+    glEnableVertexAttribArray(texcoordId);
     
     glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
     glVertexAttribPointer(vertexId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * (9 + line)));
@@ -233,6 +315,11 @@ void drawHorizontalCrossLine(int line) {
             , 6 // total points.
     );     
     glfwSwapBuffers(window);
+    
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind
+    glDisableVertexAttribArray(vertexId);
+    glDisableVertexAttribArray(texcoordId);
+    glBindVertexArray(0);    
 }
 
 void drawVerticalCrossLine(int line) {
@@ -243,6 +330,9 @@ void drawVerticalCrossLine(int line) {
     texcoordId = glGetAttribLocation(program, "texcoord");    
     
     glBindVertexArray(vertexArrayID);
+
+    glEnableVertexAttribArray(vertexId);
+    glEnableVertexAttribArray(texcoordId);
     
     glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
     glVertexAttribPointer(vertexId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * (12 + line)));
@@ -257,6 +347,11 @@ void drawVerticalCrossLine(int line) {
             , 6 // total points.
     );     
     glfwSwapBuffers(window);
+    
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind
+    glDisableVertexAttribArray(vertexId);
+    glDisableVertexAttribArray(texcoordId);
+    glBindVertexArray(0);    
 }
 
 void drawXCrossLine(int line) {
@@ -267,6 +362,9 @@ void drawXCrossLine(int line) {
     texcoordId = glGetAttribLocation(program, "texcoord");    
     
     glBindVertexArray(vertexArrayID);
+
+    glEnableVertexAttribArray(vertexId);
+    glEnableVertexAttribArray(texcoordId);
     
     glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
     glVertexAttribPointer(vertexId, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (void *) (2 * sizeof(GL_FLOAT) * 6 * 15));
@@ -281,6 +379,11 @@ void drawXCrossLine(int line) {
             , 6 // total points.
     );     
     glfwSwapBuffers(window);
+    
+    glBindTexture(GL_TEXTURE_2D, 0); // unbind
+    glDisableVertexAttribArray(vertexId);
+    glDisableVertexAttribArray(texcoordId);
+    glBindVertexArray(0);    
 }
 
 char checkWin() {
@@ -401,13 +504,11 @@ void window_size_callback(GLFWwindow* window, int width, int height) {
     windowWeight = width;
     windowHeight = height;
     
+    glViewport(0, 0, width, height);
+    
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     redrawAll();
-    
-    glViewport(0, 0, width, height);
-    
-    glfwSwapBuffers(window);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
@@ -618,28 +719,31 @@ void fillElementsTexCoords(GLfloat texcoords_elements[]) {
     return;
 }
 
-void fillFieldVertex(GLfloat vertex_buffer_data[], GLfloat texcoords_buffer_data[]) {
-    GLfloat gl_vertex_buffer_data_field[2 * 6] = {
-        -1.0, -1.0,
-        1.0, -1.0,
-        1.0, 1.0,
-        1.0, 1.0,
-        -1.0, 1.0,
-        -1.0, -1.0
-    };
+void initElements() {
+    glBindVertexArray(vertexArrayID);
     
-    memcpy(vertex_buffer_data, gl_vertex_buffer_data_field, 2 * 6 * sizeof(GLfloat));
+    elementTexture = TextureFromTGA("images/elements.tga");
+    if(elementTexture == -1) {
+        printf("elementTexture - fail\n");
+        return;
+    }
+
+    GLfloat gl_vertex_buffer_data_elements[16 * 2 * 6] = { 0 };
+    fillElementsVertex(gl_vertex_buffer_data_elements);
     
-    GLfloat gl_texcoords_buffer_data_field[2 * 6] = {
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        0.0, 0.0
-    };
+    GLfloat gl_texcoords_buffer_data_elements[25 * 2 * 6] = { 0 };
+    fillElementsTexCoords(gl_texcoords_buffer_data_elements);
     
-    memcpy(texcoords_buffer_data, gl_texcoords_buffer_data_field, 2 * 6 * sizeof(GLfloat));
+    glGenBuffers(1, &vertexbufferElements);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data_elements), gl_vertex_buffer_data_elements, GL_STATIC_DRAW);
+
+    
+    glGenBuffers(1, &vbo_texcoords_elements);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_elements);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data_elements), gl_texcoords_buffer_data_elements, GL_STATIC_DRAW);
+    
+    glBindVertexArray(0);    
     
     return;
 }
@@ -663,7 +767,7 @@ int main(int argv, char *argc[]) {
     }
     glfwSetWindowAspectRatio(window, 1, 1); // in general can be removed, just for beauty
     
-    glfwMakeContextCurrent(window); // Initialize GLEW
+    glfwMakeContextCurrent(window); // Makes the context of the specified window current for the calling thread.
 
     glewExperimental = 1;
     if (glewInit() != GLEW_OK) {
@@ -691,66 +795,10 @@ int main(int argv, char *argc[]) {
 
     // Init VAO
     glGenVertexArrays(1, &vertexArrayID); // VAO
-    glBindVertexArray(vertexArrayID);
-
-    // Init VBO
-    GLuint vertexId; // vbo
-    vertexId = glGetAttribLocation(program, "vertex_position");
-    glEnableVertexAttribArray(vertexId);
     
-    GLint texcoordId = -1;
-    texcoordId = glGetAttribLocation(program, "texcoord");
-    glEnableVertexAttribArray(texcoordId);
-
-    //
-    
-    GLfloat gl_vertex_buffer_data_field[2 * 6];
-    GLfloat gl_texcoords_buffer_data_field[2 * 6];
-    fillFieldVertex(gl_vertex_buffer_data_field, gl_texcoords_buffer_data_field);
-    
-    glGenBuffers(1, &vertexbufferField);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferField);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data_field), gl_vertex_buffer_data_field, GL_STATIC_DRAW);
-    
-    fieldTexture = TextureFromTGA("images/field.tga");
-
-    if(fieldTexture == -1) {
-        printf("fieldTexture - fail\n");
-        return EXIT_FAILURE;
-    }
-    
-    glGenBuffers(1, &vbo_texcoords_field);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_field);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data_field), gl_texcoords_buffer_data_field, GL_STATIC_DRAW);
-    
-    elementTexture = TextureFromTGA("images/elements.tga");
-    if(elementTexture == -1) {
-        printf("elementTexture - fail\n");
-        return EXIT_FAILURE;
-    }
-
-    GLfloat gl_vertex_buffer_data_elements[16 * 2 * 6] = { 0 };
-    fillElementsVertex(gl_vertex_buffer_data_elements);
-    
-    GLfloat gl_texcoords_buffer_data_elements[25 * 2 * 6] = { 0 };
-    fillElementsTexCoords(gl_texcoords_buffer_data_elements);
-    
-    glGenBuffers(1, &vertexbufferElements);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbufferElements);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_vertex_buffer_data_elements), gl_vertex_buffer_data_elements, GL_STATIC_DRAW);
-
-    
-    glGenBuffers(1, &vbo_texcoords_elements);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_texcoords_elements);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(gl_texcoords_buffer_data_elements), gl_texcoords_buffer_data_elements, GL_STATIC_DRAW);
-    
+    initField();
+    initElements();
     initMenu();
-    
-    // finish init
-    
-    glBindTexture(GL_TEXTURE_2D, 0); // unbind
-    glBindVertexArray(0);
-
     
     initGame();
     drawField();
@@ -761,9 +809,6 @@ int main(int argv, char *argc[]) {
         glfwPollEvents();
     }
 
-    //glDisableVertexAttribArray(vertexId);
-    //glDisableVertexAttribArray(texcoordId);
-    
     glfwDestroyWindow(window);
     glfwTerminate();
         
