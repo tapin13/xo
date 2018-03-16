@@ -18,10 +18,14 @@ sudo make install
 ```
 
 #### Just for run
+```bash
 sudo apt-get install libglew1.13
+```
 
 #### For compiling
+```bash
 sudo apt-get install libglew-dev
+```
 
 ## Compilation
 
