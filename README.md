@@ -1,8 +1,12 @@
+# XO (aka Tic-Tac-Toe) 
+
+Wrote on C language, OpenGL 3.3, GLEW, GLFW.
+
 # Compile
 
 ## Prepair:
 
-LinuxMint 18.3
+### LinuxMint 18.3
 
 ```bash
 git clone https://github.com/glfw/glfw.git
@@ -12,3 +16,17 @@ cmake .
 make
 sudo make install
 ```
+
+#### Just for run
+sudo apt-get install libglew1.13
+
+#### For compiling
+sudo apt-get install libglew-dev
+
+## Compilation
+
+```bash
+make
+```
+
+If you see any libs, that required, just install it.
