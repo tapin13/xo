@@ -806,7 +806,8 @@ int main(int argv, char *argc[]) {
     while(glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
         //glfwSwapBuffers(window);
 
-        glfwPollEvents();
+        //glfwPollEvents(); // This is the best choice when rendering continually
+        glfwWaitEvents(); // It waits until at least one event has been received
     }
 
     glfwDestroyWindow(window);
